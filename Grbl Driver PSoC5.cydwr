@@ -411,17 +411,20 @@
     <Group key="Pin">
       <Data key="0a969fa3-ca80-48ad-a9ea-d16f6d3ff8bb" value="StepZ" />
       <Data key="0e7a3d72-38aa-445d-ad02-6768b4cbf8cc" value="StprEnable" />
+      <Data key="02f2cf2c-2c7a-49df-9246-7a3435c21be3" value="SCL_1" />
+      <Data key="4c73dcfe-0318-4ebd-bfd7-341202a76195" value="KeyPad" />
       <Data key="8d318d8b-cf7b-4b6b-b02c-ab1c5c49d0ba" value="Reset" />
       <Data key="24adb27d-3cf2-4059-9eba-cad6d3a049ea" value="XHome" />
       <Data key="25a77d76-18be-483a-bcf2-4ac7b898335d" value="DirZ" />
       <Data key="65c28f45-e3c1-4b05-9db9-d76c29ee0db9" value="SpindleCCW" />
       <Data key="79a33f10-4025-4026-874d-baca6602b54a" value="StepX" />
       <Data key="84b7d779-4f96-4c92-abd0-43b95008e040" value="StepY" />
-      <Data key="88c30603-efe6-495f-85f7-09fc31c82420" value="ProbeInput" />
+      <Data key="88c30603-efe6-495f-85f7-09fc31c82420" value="Probe" />
       <Data key="431aa4e7-b112-458f-96cf-ff89c907be6e" value="ZHome" />
       <Data key="553b753f-9c0c-4575-95d7-8639fe470f56" value="SpindlePWMOut" />
       <Data key="1028e075-4228-4e61-967d-4814fff4d958" value="CycleStart" />
       <Data key="4659fc87-8aca-44a5-b9eb-59bdf3a6981e" value="SpindleOn" />
+      <Data key="22863ebe-a37b-476f-b252-6e49a8c00b12" value="SDA_1" />
       <Data key="115200ef-a635-477e-afee-c5d92586db9f" value="Mist" />
       <Data key="1425177d-0d0e-4468-8bcc-e638e5509a9b" value="UART_RX" />
       <Data key="bf40f3b9-b6f0-459b-bfc2-97976439f151" value="FeedHold" />
@@ -3536,6 +3539,16 @@
         <Data key="Port Format" value="15,5" />
       </Group>
     </Group>
+    <Group key="02f2cf2c-2c7a-49df-9246-7a3435c21be3">
+      <Group key="0">
+        <Data key="Port Format" value="12,4" />
+      </Group>
+    </Group>
+    <Group key="4c73dcfe-0318-4ebd-bfd7-341202a76195">
+      <Group key="0">
+        <Data key="Port Format" value="0,2" />
+      </Group>
+    </Group>
     <Group key="8d318d8b-cf7b-4b6b-b02c-ab1c5c49d0ba">
       <Group key="0">
         <Data key="Port Format" value="15,0" />
@@ -3548,7 +3561,7 @@
     </Group>
     <Group key="25a77d76-18be-483a-bcf2-4ac7b898335d">
       <Group key="0">
-        <Data key="Port Format" value="0,6" />
+        <Data key="Port Format" value="3,0" />
       </Group>
     </Group>
     <Group key="65c28f45-e3c1-4b05-9db9-d76c29ee0db9">
@@ -3568,7 +3581,7 @@
     </Group>
     <Group key="88c30603-efe6-495f-85f7-09fc31c82420">
       <Group key="0">
-        <Data key="Port Format" value="12,5" />
+        <Data key="Port Format" value="12,3" />
       </Group>
     </Group>
     <Group key="431aa4e7-b112-458f-96cf-ff89c907be6e">
@@ -3589,6 +3602,11 @@
     <Group key="4659fc87-8aca-44a5-b9eb-59bdf3a6981e">
       <Group key="0">
         <Data key="Port Format" value="2,2" />
+      </Group>
+    </Group>
+    <Group key="22863ebe-a37b-476f-b252-6e49a8c00b12">
+      <Group key="0">
+        <Data key="Port Format" value="12,5" />
       </Group>
     </Group>
     <Group key="115200ef-a635-477e-afee-c5d92586db9f">

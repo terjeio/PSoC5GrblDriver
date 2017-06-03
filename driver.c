@@ -1,5 +1,5 @@
 /*
-  driver.c - An embedded CNC Controller with rs274/ngc (g-code) support
+  I2CKeypad.c - An embedded CNC Controller with rs274/ngc (g-code) support
 
   Driver for Cypress PSoC 5 (CY8CKIT-059)
 
@@ -23,13 +23,10 @@
 
 #include "project.h"
 #include "serial.h"
+#include "i2c_keypad.h"
 #include "grbl.h"
 
-// TODO: handle F_CPU in a portable way - it is not used as CPU frequency but rather ticks per counter increment/decrement for timer(s)
-// This implementation prescales step counter by four for a F_CPU of 20MHz to avoid overflow in Grbl code
-// However, the best solution may be to change cycles_per_tick in stepper.c to 32 bit and handle prescaling in the driver?
-
-// All axis related signals have to be "normalized" by the driver - they should no longer be limited to sharing the same port
+#define HAS_KEYPAD //uncomment to enable I2C keypad for jogging etc.
 
 // prescale step counter to 20Mhz (80 / (STEPPER_DRIVER_PRESCALER + 1))
 #define STEPPER_DRIVER_PRESCALER 3
@@ -317,7 +314,7 @@ static uint8_t valueSetAtomic (volatile uint8_t *ptr, uint8_t value)
 }
 
 // Callback to inform settings has been changed, called by settings_store_global_setting()
-// Used here to set assorted helper variables
+// Used to (re)configure hardware and set up helper variables
 void settings_changed (settings_t *settings) {
 
     //TODO: disable interrupts while reconfigure?
@@ -335,7 +332,7 @@ void settings_changed (settings_t *settings) {
     XHome_SetDriveMode(settings->limit_disable_pullup_mask.x ? XHome_DM_RES_DWN : XHome_DM_RES_UP);
     YHome_Write(settings->limit_disable_pullup_mask.y ? 0 : 1);
     YHome_SetDriveMode(settings->limit_disable_pullup_mask.y ? YHome_DM_RES_DWN : YHome_DM_RES_UP);
-    ZHome_Write(settings->limit_disable_pullup_mask.y ? 0 : 1);
+    ZHome_Write(settings->limit_disable_pullup_mask.z ? 0 : 1);
     ZHome_SetDriveMode(settings->limit_disable_pullup_mask.z ? ZHome_DM_RES_DWN : ZHome_DM_RES_UP);
     HomingSignalsInvert_Write(settings->limit_invert_mask.value);
 
@@ -411,11 +408,21 @@ static bool driver_setup (settings_t *settings)
     coolantSetState((coolant_state_t){0});
     stepperSetDirOutputs((axes_signals_t){0});
 
+#ifdef HAS_KEYPAD
+
+   /*********************
+    *  I2C KeyPad init  *
+	*********************/
+
+	I2C_keypad_setup();
+
+#endif
+
     return settings->version == 12;
 }
 
 // Initialize HAL pointers
-// NOTE: Grbl is not yet (configured from EEPROM data), mcu_init() will be called when done
+// NOTE: Grbl is not yet (configured from EEPROM data), driver_setup() will be called when done
 bool driver_init (void) {
 
     serialInit();
@@ -498,14 +505,6 @@ static void stepper_driver_isr (void) {
 
 }
 
-/* The Stepper Port Reset Interrupt: This interrupt handles the falling edge of the step
-   pulse. This should always trigger before the next general stepper driver interrupt and independently
-   finish, if stepper driver interrupts is disabled after completing a move.
-   NOTE: Interrupt collisions between the serial and stepper interrupts can cause delays by
-   a few microseconds, if they execute right before one another. Not a big deal, but can
-   cause issues at high step rates if another high frequency asynchronous interrupt is
-   added to Grbl.
-*/
 // This interrupt is enabled when Grbl sets the motor port bits to execute
 // a step. This ISR resets the motor port after a short period (settings.pulse_microseconds)
 // completing one step cycle.

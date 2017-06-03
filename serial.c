@@ -114,19 +114,19 @@ void serialPutC (const char c) {
 
 static void uart_rx_interrupt_handler (void) {
 
-    uint8_t data; //returns 0 if no data
+    uint8_t data;
 
-    while((data = UART_GetChar())) {
+    while((data = UART_GetChar())) { // UART_GetChar() returns 0 if no data
         
         uint16_t bptr = (rx_head + 1) & (RX_BUFFER_SIZE - 1);   // Get next head pointer
 
         if(bptr == rx_tail)     // If buffer full
-            rx_overflow = 1;    // flag overlow
+            rx_overflow = 1;    // flag overflow
         else if(hal.protocol_process_realtime(data)) {
             rxbuf[rx_head] = data;  // Add data to buffer
             rx_head = bptr;         // and update pointer
         }
-    } // loop here until FIFO empty
+    } // loop until FIFO empty
 
 //        if (!rts_state && BUFCOUNT(rx_head, rx_tail, RX_BUFFER_SIZE) >= RX_BUFFER_HWM)
 //            GPIOPinWrite(RTS_PORT, RTS_PIN, rts_state = RTS_PIN);
