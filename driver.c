@@ -39,18 +39,10 @@ static uint32_t curr_spindle_pwm = 0;
 static bool spindlePWM = false;
 static spindle_pwm_t spindle_pwm;
 static axes_signals_t next_step_outbits;
+static void (*delayCallback)(void) = 0;
 
 #ifdef STEP_PULSE_DELAY
 static uint8_t next_step_outbits, step_port_invert_mask, dir_port_invert_mask;
-#endif
-
-#ifndef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-	static uint16_t step_prescaler[4] = {
-		STEPPER_DRIVER_PRESCALER,
-		STEPPER_DRIVER_PRESCALER,
-		STEPPER_DRIVER_PRESCALER + 8,
-		STEPPER_DRIVER_PRESCALER + 64
-	};
 #endif
 
 // Interrupt handler prototypes
@@ -60,11 +52,13 @@ static void limit_isr (void);
 static void control_isr (void);
 static void systick_isr (void);
 
-static void driver_delay_ms (uint32_t ms) {
+static void driver_delay_ms (uint32_t ms, void (*callback)(void)) {
     if((ms_count = ms) > 0) {
 		DelayTimer_Start();
-		while(ms_count);
-	}
+		if(!(delayCallback = callback))
+		    while(ms_count);
+	} else
+        delayCallback = 0;
 }
 
 // Non-variable spindle
@@ -164,8 +158,9 @@ static void stepperWakeUp ()
     }
 */
     // Enable stepper drivers.
-    stepperEnable(true);
-    StepperTimer_Start();
+    StepperEnable_Write(on);
+    StepperTimer_WritePeriod(5000); // dummy
+    StepperTimer_Enable();
     Stepper_Interrupt_SetPending();
 //    hal.stepper_interrupt_callback();
 
@@ -178,7 +173,12 @@ static void stepperGoIdle (void) {
 
 // Sets up stepper driver interrupt timeout, called from stepper_driver_interrupt_handler()
 static void stepperCyclesPerTick (uint32_t cycles_per_tick) {
-    StepperTimer_WritePeriod(cycles_per_tick < (1UL << 24) /*< 65536 (4.1ms @ 16MHz)*/ ? cycles_per_tick : 0xffffff /*Just set the slowest speed possible.*/);
+//        StepperTimer_Stop();
+//        StepperTimer_WriteCounter(cycles_per_tick < (1UL << 24) /*< 65536 (4.1ms @ 16MHz)*/ ? cycles_per_tick : 0xFFFFFF /*Just set the slowest speed possible.*/);
+        StepperTimer_WritePeriod(cycles_per_tick < (1UL << 24) /*< 65536 (4.1ms @ 16MHz)*/ ? cycles_per_tick : 0xFFFFFF /*Just set the slowest speed possible.*/);
+//    Control_Reg_1_Write(1);
+//    Control_Reg_1_Write(0);
+//        StepperTimer_Enable();
 }
 
 // Set stepper pulse output pins, called from st_reset()
@@ -203,7 +203,6 @@ static void stepperPulseStart (axes_signals_t dir_outbits, axes_signals_t step_o
 
     StepOutput_Write(step_outbits.value);
     DirOutput_Write(dir_outbits.value);
-    StepperTimer_Start();
 }
 
 static void stepperPulseStartDelayed (axes_signals_t dir_outbits, axes_signals_t step_outbits, uint32_t spindle_pwm)
@@ -429,9 +428,9 @@ bool driver_init (void) {
     EEPROM_Start();
     
 	hal.driver_setup = &driver_setup;
-	hal.f_step_timer = 24000000;
+	hal.f_step_timer = 24000000UL;
 	hal.rx_buffer_size = RX_BUFFER_SIZE;
-	hal.delay_ms = &driver_delay_ms;
+	hal.delay_milliseconds = &driver_delay_ms;
     hal.settings_changed = &settings_changed;
 
 	hal.stepper_wake_up = &stepperWakeUp;
@@ -535,6 +534,9 @@ static void control_isr (void) {
 // Interrupt handler for 1 ms interval timer
 static void systick_isr (void) {
     DelayTimer_ReadStatusRegister();
-	if(!(--ms_count))
+	if(!(--ms_count)) {
 		DelayTimer_Stop();
+		if(delayCallback)
+			delayCallback();
+	}
 }
