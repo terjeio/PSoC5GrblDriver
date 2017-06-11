@@ -57,8 +57,8 @@ static void driver_delay_ms (uint32_t ms, void (*callback)(void)) {
 		DelayTimer_Start();
 		if(!(delayCallback = callback))
 		    while(ms_count);
-	} else
-        delayCallback = 0;
+	} else if(callback)
+		callback();
 }
 
 // Non-variable spindle
@@ -536,7 +536,9 @@ static void systick_isr (void) {
     DelayTimer_ReadStatusRegister();
 	if(!(--ms_count)) {
 		DelayTimer_Stop();
-		if(delayCallback)
+		if(delayCallback) {
 			delayCallback();
+            delayCallback = 0;
+        }
 	}
 }
