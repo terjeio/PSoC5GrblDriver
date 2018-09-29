@@ -1,5 +1,12 @@
 # PSoc5GrblDriver
-A Grbl driver for Cypress PSoC 5 \(CY8CKIT-059\), for my [HALified library version of Grbl](https://github.com/terjeio/grbl)
+
+---
+
+#### This version is no longer maintained, newer releases can be found [here](https://github.com/terjeio/grblHAL).
+
+---
+
+A Grbl driver for Cypress PSoC 5 \(CY8CKIT-059\), for my [HALified fork of Grbl](https://github.com/terjeio/grbl).
 
 ** EXPERIMENTAL **
 
